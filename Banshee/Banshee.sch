@@ -375,8 +375,62 @@ Wire Notes Line
 	6450 4800 6450 3600
 Wire Notes Line
 	6450 3600 4100 3600
+$Comp
+L Mechanical:MountingHole H1
+U 1 1 60575BBE
+P 6000 6550
+F 0 "H1" H 6100 6596 50  0000 L CNN
+F 1 "MountingHole" H 6100 6505 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 6000 6550 50  0001 C CNN
+F 3 "~" H 6000 6550 50  0001 C CNN
+	1    6000 6550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H2
+U 1 1 60577AD4
+P 6000 6850
+F 0 "H2" H 6100 6896 50  0000 L CNN
+F 1 "MountingHole" H 6100 6805 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 6000 6850 50  0001 C CNN
+F 3 "~" H 6000 6850 50  0001 C CNN
+	1    6000 6850
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H3
+U 1 1 60577E22
+P 6000 7150
+F 0 "H3" H 6100 7196 50  0000 L CNN
+F 1 "MountingHole" H 6100 7105 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 6000 7150 50  0001 C CNN
+F 3 "~" H 6000 7150 50  0001 C CNN
+	1    6000 7150
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H4
+U 1 1 60578051
+P 6000 7450
+F 0 "H4" H 6100 7496 50  0000 L CNN
+F 1 "MountingHole" H 6100 7405 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 6000 7450 50  0001 C CNN
+F 3 "~" H 6000 7450 50  0001 C CNN
+	1    6000 7450
+	1    0    0    -1  
+$EndComp
 Text Notes 700  2550 0    50   ~ 0
 ESP32
+Text Notes 5850 6400 0    50   ~ 0
+Mounting
+Wire Notes Line
+	5800 6300 5800 7750
+Wire Notes Line
+	5800 7750 6900 7750
+Wire Notes Line
+	6900 7750 6900 6300
+Wire Notes Line
+	5800 6300 6900 6300
 Wire Wire Line
 	1050 1000 1350 1000
 Wire Wire Line
@@ -396,7 +450,7 @@ Wire Wire Line
 	1050 1100 1200 1100
 Wire Wire Line
 	1200 1100 1200 1200
-Text Label 1100 1000 0    50   ~ 0
+Text Label 1150 1000 0    50   ~ 0
 Bat+
 $Comp
 L Connector:Conn_01x02_Female J?
@@ -463,4 +517,53 @@ F 3 "~" H 8400 2350 50  0001 C CNN
 	1    8400 2350
 	1    0    0    -1  
 $EndComp
+$Comp
+L Device:R R?
+U 1 1 604C396B
+P 4700 5400
+F 0 "R?" H 4770 5446 50  0000 L CNN
+F 1 "22k" H 4770 5355 50  0000 L CNN
+F 2 "" V 4630 5400 50  0001 C CNN
+F 3 "~" H 4700 5400 50  0001 C CNN
+	1    4700 5400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R?
+U 1 1 604C42A2
+P 4700 5900
+F 0 "R?" H 4770 5946 50  0000 L CNN
+F 1 "2.2k" H 4770 5855 50  0000 L CNN
+F 2 "" V 4630 5900 50  0001 C CNN
+F 3 "~" H 4700 5900 50  0001 C CNN
+	1    4700 5900
+	1    0    0    -1  
+$EndComp
+Text Label 4850 5100 0    50   ~ 0
+Bat+
+Wire Wire Line
+	4850 5100 4700 5100
+Wire Wire Line
+	4700 5100 4700 5250
+Wire Wire Line
+	4700 5550 4700 5750
+$Comp
+L power:GND #PWR?
+U 1 1 604C94FF
+P 4700 6250
+F 0 "#PWR?" H 4700 6000 50  0001 C CNN
+F 1 "GND" H 4705 6077 50  0000 C CNN
+F 2 "" H 4700 6250 50  0001 C CNN
+F 3 "" H 4700 6250 50  0001 C CNN
+	1    4700 6250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4700 6250 4700 6050
+Text Label 5200 5650 2    50   ~ 0
+BAT_SENSE
+Text Label 3650 6100 2    50   ~ 0
+BAT_SENSE
+Wire Wire Line
+	3650 6100 3050 6100
 $EndSCHEMATC
