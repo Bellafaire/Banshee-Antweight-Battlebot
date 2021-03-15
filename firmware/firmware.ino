@@ -9,7 +9,8 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
-#include <ESP32Servo.h> 
+#include <ESP32Servo.h>
+#include <driver/adc.h>
 
 #define SERVICE_UUID        "b2ee9903-faef-4800-970b-28c4f243893f"
 #define RIGHT_MOTOR_UUID         "b2ee9903-faef-4800-970b-28c4f2438940"
@@ -28,7 +29,13 @@ int weaponSpeed = 0;
 unsigned long lastBatteryVoltageUpdate = 0;
 #define BATTERY_VOLTAGE_UPDATE_RATE 1000 //ms between updates
 
+//it's easier to just calibrate the ADC from test values
+#define ADC_8V_VALUE 735
+#define ADC_12V_VALUE 1180
+
 #define ESC_CTRL 13
+#define BAT_SENSE_ADC_CH 8
+#define BAT_SENSE_PIN 25
 
 #define MOTOR1_EN 17
 #define MOTOR1_CHANNEL 0
@@ -76,14 +83,23 @@ void writeMotor(int motor, int speed) {
 }
 
 void setWeaponSpeed(int speed) {
-  ESC.write(map(speed, 0, 100, 0, 180)); 
+  ESC.write(map(speed, 0, 100, 0, 180));
 }
 
 float getBatteryVoltage() {
-  return millis();
+  //apply linear interpretation on values read from the ADC, technically speaking this allows the voltage divider to be made
+  //from any values of resistor as long as the voltage present on the pin is < 3.6V. Calibration values can be filled in above. 
+  return ((float)readBatRaw() - (float)ADC_8V_VALUE) * ((12.0 - 8.0) / (ADC_12V_VALUE - ADC_8V_VALUE)) + 8;
 }
 
 unsigned long lastDebugString = 0;
+
+int readBatRaw() {
+  int read_raw;
+  adc2_config_channel_atten((adc2_channel_t) BAT_SENSE_ADC_CH, ADC_ATTEN_11db );
+  adc2_get_raw((adc2_channel_t) BAT_SENSE_ADC_CH, ADC_WIDTH_BIT_12, &read_raw);
+  return read_raw;
+}
 
 void loop() {
   if (connected) {
@@ -103,7 +119,7 @@ void loop() {
 
   if (250 + lastDebugString < millis()) {
     lastDebugString = millis();
-    Serial.println("Connected: " + String(connected) + " Left Motor Speed: " + String(leftMotorSpeed) + " Right Motor Speed: " + String(rightMotorSpeed) + + " Weapon Motor Speed: " + String(weaponSpeed));
+    Serial.println("Connected: " + String(connected) + " Left Motor Speed: " + String(leftMotorSpeed) + " Right Motor Speed: " + String(rightMotorSpeed) +  " Weapon Motor Speed: " + String(weaponSpeed) + " Battery Voltage: " + String(getBatteryVoltage()));
   }
 
 }

@@ -90,6 +90,6 @@ void initBLE() {
 }
 
 void updateBatteryVoltage() {
-  batteryVoltage->setValue(String(getBatteryVoltage()).c_str());
+  batteryVoltage->setValue(String(getBatteryVoltage(),2).c_str());
   batteryVoltage->notify();
 }
