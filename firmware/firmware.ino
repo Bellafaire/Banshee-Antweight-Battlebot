@@ -1,12 +1,15 @@
-/*TODO: 
- * -ESC interface
- * -Analog voltage readings
- */
+/*TODO:
+   -ESC interface
+   -Analog voltage readings
+*/
+
+//requires https://github.com/madhephaestus/ESP32Servo
 
 
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
+#include <ESP32Servo.h> 
 
 #define SERVICE_UUID        "b2ee9903-faef-4800-970b-28c4f243893f"
 #define RIGHT_MOTOR_UUID         "b2ee9903-faef-4800-970b-28c4f2438940"
@@ -15,6 +18,8 @@
 #define BATTERY_VOLTAGE_UUID     "b2ee9903-faef-4800-970b-28c4f2438943"
 void initBLE();
 
+Servo ESC;
+
 boolean connected = false;
 int rightMotorSpeed = 0;
 int leftMotorSpeed = 0;
@@ -22,6 +27,8 @@ int weaponSpeed = 0;
 
 unsigned long lastBatteryVoltageUpdate = 0;
 #define BATTERY_VOLTAGE_UPDATE_RATE 1000 //ms between updates
+
+#define ESC_CTRL 13
 
 #define MOTOR1_EN 17
 #define MOTOR1_CHANNEL 0
@@ -41,6 +48,12 @@ void setup() {
   ledcSetup(MOTOR2_CHANNEL, 1000, 8);
   ledcAttachPin(MOTOR1_EN, MOTOR1_CHANNEL);
   ledcAttachPin(MOTOR2_EN, MOTOR2_CHANNEL);
+
+  //servo
+  // Allow allocation of timer 3
+  ESP32PWM::allocateTimer(3);
+  ESC.setPeriodHertz(50);// Standard 50hz servo
+  ESC.attach(ESC_CTRL, 500, 2400);
 
   //standard IO config
   pinMode(MOTOR_1A, OUTPUT);
@@ -63,7 +76,7 @@ void writeMotor(int motor, int speed) {
 }
 
 void setWeaponSpeed(int speed) {
-
+  ESC.write(map(speed, 0, 100, 0, 180)); 
 }
 
 float getBatteryVoltage() {
