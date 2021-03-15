@@ -15,10 +15,9 @@ class cb : public BLEServerCallbacks    {
 
 class rightMotorCallback : public BLECharacteristicCallbacks  {
     void onWrite(BLECharacteristic *pCharacteristic) {
-
       int speed = String(pCharacteristic->getValue().c_str()).toInt();
       rightMotorSpeed =  speed;
-      Serial.println("**** set right motor speed to: " + String(speed));
+//      Serial.println("**** set right motor speed to: " + String(speed));
     }
 };
 
@@ -26,7 +25,7 @@ class leftMotorCallback : public BLECharacteristicCallbacks  {
     void onWrite(BLECharacteristic *pCharacteristic) {
       int speed = String(pCharacteristic->getValue().c_str()).toInt();
       leftMotorSpeed =  speed;
-      Serial.println("**** set right motor speed to: " + String(speed));
+//      Serial.println("**** set left motor speed to: " + String(speed));
     }
 };
 
@@ -35,7 +34,7 @@ class weaponMotorCallback : public BLECharacteristicCallbacks  {
     void onWrite(BLECharacteristic *pCharacteristic) {
       int speed = String(pCharacteristic->getValue().c_str()).toInt();
       weaponSpeed =  speed;
-      Serial.println("**** set right motor speed to: " + String(speed));
+//      Serial.println("**** set weapon motor speed to: " + String(speed));
     }
 };
 

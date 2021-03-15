@@ -18,20 +18,26 @@ import android.view.View;
 
 import android.view.Menu;
 import android.view.MenuItem;
-
+/* Main activity, minimal important things happen here
+ */
 public class MainActivity extends AppCompatActivity {
 
+    //static reference to the bluetooth interface object that manages all bluetooth communication in this app
     public static BluetoothInterface bluetooth;
+
+    //and context reference
     private static Context ref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //setup stuff
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-    //check permissions from https://stackoverflow.com/questions/34342816/android-6-0-multiple-permissions
+        //check permissions from https://stackoverflow.com/questions/34342816/android-6-0-multiple-permissions
         String[] PERMISSIONS = {
                 Manifest.permission.BLUETOOTH,
                 Manifest.permission.BLUETOOTH_ADMIN,
@@ -43,19 +49,12 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
         }
 
-
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        //set reference
         ref = this;
     }
 
 
+    //check permissions
     public static boolean hasPermissions(Context context, String... permissions) {
         if (context != null && permissions != null) {
             for (String permission : permissions) {
@@ -88,7 +87,9 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-    public static void initBluetooth(){
+
+    //initialize BluetoothInterface object in order to communicate with the ESP32
+    public static void initBluetooth() {
         final BluetoothManager bluetoothManager = (BluetoothManager) ref.getSystemService(Context.BLUETOOTH_SERVICE);
         bluetooth = new BluetoothInterface(ref, bluetoothManager);
         Log.d("Main", "Started Bluetooth Service");

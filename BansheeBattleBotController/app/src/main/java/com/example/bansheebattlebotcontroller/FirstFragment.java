@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+/* basically just a button that starts a scan, press it whenever the bot is ready to go and be connected to. */
 public class FirstFragment extends Fragment {
 
     @Override
@@ -31,6 +32,7 @@ public class FirstFragment extends Fragment {
             public void onClick(View view) {
                 MainActivity.initBluetooth();
 
+                //go to main panel
                 NavHostFragment.findNavController(FirstFragment.this)
                         .navigate(R.id.action_FirstFragment_to_SecondFragment);
             }

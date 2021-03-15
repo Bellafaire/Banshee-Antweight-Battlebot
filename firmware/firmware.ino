@@ -51,14 +51,14 @@ void setup() {
 }
 
 void writeMotor(int motor, int speed) {
-  if (motor) {
+  if (motor == 1) {
     ledcWrite(MOTOR2_CHANNEL, abs(speed));
     digitalWrite(MOTOR_3A, speed > 0 );
     digitalWrite(MOTOR_4A, speed < 0 );
   } else {
     ledcWrite(MOTOR1_CHANNEL, abs(speed));
-    digitalWrite(MOTOR_1A, speed > 0);
-    digitalWrite(MOTOR_2A, speed < 0);
+    digitalWrite(MOTOR_1A, speed < 0);
+    digitalWrite(MOTOR_2A, speed > 0);
   }
 }
 
@@ -67,15 +67,15 @@ void setWeaponSpeed(int speed) {
 }
 
 float getBatteryVoltage() {
-  return 0.0;
+  return millis();
 }
 
 unsigned long lastDebugString = 0;
 
 void loop() {
   if (connected) {
-    writeMotor(0, rightMotorSpeed);
-    writeMotor(1, leftMotorSpeed);
+    writeMotor(0, leftMotorSpeed);
+    writeMotor(1, rightMotorSpeed);
     setWeaponSpeed(weaponSpeed);
 
     if (BATTERY_VOLTAGE_UPDATE_RATE + lastBatteryVoltageUpdate < millis()) {
@@ -88,7 +88,7 @@ void loop() {
     setWeaponSpeed(0);
   }
 
-  if (500 + lastDebugString < millis()) {
+  if (250 + lastDebugString < millis()) {
     lastDebugString = millis();
     Serial.println("Connected: " + String(connected) + " Left Motor Speed: " + String(leftMotorSpeed) + " Right Motor Speed: " + String(rightMotorSpeed) + + " Weapon Motor Speed: " + String(weaponSpeed));
   }

@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
-import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
@@ -13,34 +12,23 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Handler;
+import android.content.IntentFilter;
 import android.os.ParcelUuid;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static androidx.core.content.ContextCompat.getSystemService;
+/*Bluetooth class that handles everything having to do with bluetooth communication to the bot. Implements a queue to
+automatically prevent commands being lost
 
+ */
 public class BluetoothInterface {
-
-    private int connectionState = STATE_DISCONNECTED;
-
-    private static final int STATE_DISCONNECTED = 0;
-    private static final int STATE_CONNECTING = 1;
-    private static final int STATE_CONNECTED = 2;
-
-    public final static String ACTION_GATT_CONNECTED = "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
-    public final static String ACTION_GATT_DISCONNECTED = "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
-    public final static String ACTION_GATT_SERVICES_DISCOVERED = "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
-    public final static String ACTION_DATA_AVAILABLE = "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
-    public final static String EXTRA_DATA = "com.example.bluetooth.le.EXTRA_DATA";
 
     private Context mContext;
     private String TAG = "BluetoothInterface";
@@ -54,21 +42,44 @@ public class BluetoothInterface {
 
     private BluetoothManager bm;
 
+    //receiver
+    private static BLEUpdateReceiver nReceiver;
+    public static final String BLE_UPDATE = "com.companionApp.BLE_UPDATE";
 
     // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 20000;
     public static final String deviceUUID = "b2ee9903-faef-4800-970b-28c4f243893f";
 
     public static final String RIGHT_MOTOR_UUID = "b2ee9903-faef-4800-970b-28c4f2438940";
     public static final String LEFT_MOTOR_UUID = "b2ee9903-faef-4800-970b-28c4f2438941";
     public static final String WEAPON_SPEED_UUID = "b2ee9903-faef-4800-970b-28c4f2438942";
     public static final String BATTERY_VOLTAGE_UUID = "b2ee9903-faef-4800-970b-28c4f2438943";
+    private boolean writeInProgress = false;
+    private ArrayList<QueuedOperation> operationQueue = new ArrayList<QueuedOperation>(0);
 
+
+    //init bluetooth interface
     public BluetoothInterface(Context mContext, BluetoothManager bm) {
         Log.d(TAG, "Bluetooth Interface Started");
 
         this.bm = bm;
         this.mContext = mContext;
+
+        //set connection status and service discovery status, these will be updated later from the callbacks
+        mConnected = false;
+        serviceDiscovered = false;
+
+        //attach the receiver that's used to update the remote BLE device
+        try {
+            //init notification receiver
+            nReceiver = new BLEUpdateReceiver();
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(BLE_UPDATE);
+            mContext.registerReceiver(nReceiver, filter);
+            Log.i(TAG, "Re-registered broadcast reciever");
+        } catch (IllegalArgumentException e) {
+            //this is basically designed to crash so eh whatever
+            Log.e(TAG, "Failed to register broadcast reciever in BLESend: " + e.getLocalizedMessage());
+        }
 
         bluetoothAdapter = bm.getAdapter();
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
@@ -85,22 +96,40 @@ public class BluetoothInterface {
         scanLeDevice();
     }
 
-    public boolean isConnected(){
-        return mConnected;
+    //returns true if service is discovered. We want to know this because we can be connected without services being discoverred,
+    //but we cannot send any data in that state.
+    public boolean isServiceDiscovered() {
+        return serviceDiscovered;
     }
 
+    //writes data to the BLE device, if there is already an operation in progress then it will queue the data and send it as soon as possible.
+    //queue is serviced the by the broadcast receiver below.
+    public boolean write(String str, String uuid) {
+        writeInProgress = true;
+        BluetoothGattCharacteristic bgc;
+        try {
+            bgc = bluetoothGatt.getService(UUID.fromString(deviceUUID)).getCharacteristic(UUID.fromString(uuid));
+        } catch (Exception e) {
+            operationQueue.add(new QueuedOperation(uuid, str));
+            return false;
+        }
+        if (bgc != null) {
+            bgc.setValue(str);
+            if (bluetoothGatt.writeCharacteristic(bgc)) {
+                Log.d(TAG, "transmitted:" + str);
+            } else {
+                operationQueue.add(new QueuedOperation(uuid, str));
+                return false;
+            }
+        } else {
+            Log.e(TAG, "Characteristic is null");
+        }
+        return false;
+    }
 
+    //callbacks, only implemented the ones that are used below.
     private final BluetoothGattCallback gattCallback =
             new BluetoothGattCallback() {
-                @Override
-                public void onPhyUpdate(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
-                    super.onPhyUpdate(gatt, txPhy, rxPhy, status);
-                }
-
-                @Override
-                public void onPhyRead(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
-                    super.onPhyRead(gatt, txPhy, rxPhy, status);
-                }
 
                 @Override
                 public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
@@ -122,8 +151,10 @@ public class BluetoothInterface {
                     } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                         //update status variables
                         mConnected = false;
-
+                        Intent i = new Intent(BLE_UPDATE);
+                        mContext.sendBroadcast(i);
                         Log.i(TAG, "Disconnected from GATT server.");
+
 
                     } else {
                         //this isn't actually possible but whatever
@@ -140,53 +171,60 @@ public class BluetoothInterface {
                     List<BluetoothGattCharacteristic> chars = gatt.getService(UUID.fromString(deviceUUID)).getCharacteristics();
 
                     for (int a = 0; a < chars.size(); a++) {
+                        Log.i(TAG, "Found characteristic: " + new String(chars.get(a).getUuid().toString()));
                         if ((chars.get(a).getProperties() & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
                             gatt.setCharacteristicNotification(chars.get(a), true);
                             Log.i(TAG, "Subscribed to characteristic: " + new String(chars.get(a).getUuid().toString()));
                         }
                     }
+                    serviceDiscovered = true;
                 }
 
-                @Override
-                public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-                    super.onCharacteristicRead(gatt, characteristic, status);
-                }
 
                 @Override
                 public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                     super.onCharacteristicWrite(gatt, characteristic, status);
+                    //indicate we can write again
+                    writeInProgress = false;
+
+                    //if success then try to send the next bit of data by sending a broadcast
+                    //to the receiver and triggering an update.
+                    if (status == BluetoothGatt.GATT_SUCCESS) {
+                        Log.d(TAG, "BLE Write success");
+                    } else {
+                        //print scary warning message if something goes wrong
+                        Log.e(TAG, "BLE Write failed");
+
+                    }
+
+                    //trigger broadcast receiver to service any items that may be in queue
+                    Intent i = new Intent(BLE_UPDATE);
+                    mContext.sendBroadcast(i);
                 }
 
                 @Override
                 public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
                     super.onCharacteristicChanged(gatt, characteristic);
-                }
-
-                @Override
-                public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-                    super.onDescriptorRead(gatt, descriptor, status);
-                }
-
-                @Override
-                public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-                    super.onDescriptorWrite(gatt, descriptor, status);
-                }
-
-                @Override
-                public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
-                    super.onReliableWriteCompleted(gatt, status);
-                }
-
-                @Override
-                public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
-                    super.onReadRemoteRssi(gatt, rssi, status);
-                }
-
-                @Override
-                public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
-                    super.onMtuChanged(gatt, mtu, status);
+                    if (characteristic.getUuid().toString().equals(BATTERY_VOLTAGE_UUID)) {
+                        SecondFragment.batteryVoltage = Float.parseFloat(new String(characteristic.getValue(), StandardCharsets.US_ASCII));
+                    }
                 }
             };
+
+
+    //broadcast receiver required in order to service the queue, this will be called whenever a write operation is completed
+    //indicating that the bot would be ready to accept another write.
+    class BLEUpdateReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "Bluetooth update request received, queue size: " + operationQueue.size());
+            if (operationQueue.size() > 0) {
+                write(operationQueue.get(0).getMessage(), operationQueue.get(0).getUUID());
+                operationQueue.remove(0);
+            }
+
+        }
+    }
 
     private ScanCallback cb =
             new ScanCallback() {
@@ -194,10 +232,9 @@ public class BluetoothInterface {
                 public void onScanResult(int callbackType, ScanResult result) {
                     super.onScanResult(callbackType, result);
                     if (!mConnected) {
-                        bluetoothLeScanner.stopScan(cb);
                         Log.d(TAG, "Device Found, saving");
-                        bluetoothGatt = result.getDevice().connectGatt(mContext, true, gattCallback);
-
+                        bluetoothGatt = result.getDevice().connectGatt(mContext, false, gattCallback);
+                        bluetoothLeScanner.stopScan(cb);
                     }
                 }
             };
@@ -234,3 +271,23 @@ public class BluetoothInterface {
         }
     }
 }
+
+//class (although it's basically just a data structure at this point) to hold the strings for items that need to be queued
+//due to operations already being in progress.
+class QueuedOperation {
+    private String UUID, message;
+
+    public QueuedOperation(String UUID, String message) {
+        this.UUID = UUID;
+        this.message = message;
+    }
+
+    String getMessage() {
+        return message;
+    }
+
+    String getUUID() {
+        return UUID;
+    }
+}
+
