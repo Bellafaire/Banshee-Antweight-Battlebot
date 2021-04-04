@@ -56,6 +56,18 @@ public class BluetoothInterface {
     private boolean writeInProgress = false;
     private ArrayList<QueuedOperation> operationQueue = new ArrayList<QueuedOperation>(0);
 
+    public int getQueueLength(){
+        return operationQueue.size();
+    }
+
+    public void clearQueue(){
+        for(int a = 0; a < operationQueue.size(); a++) {
+            operationQueue.remove(a);
+        }
+            }
+
+
+
 
     //init bluetooth interface
     public BluetoothInterface(Context mContext, BluetoothManager bm) {

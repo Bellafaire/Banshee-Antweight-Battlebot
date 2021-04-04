@@ -34,12 +34,13 @@ public class SecondFragment extends Fragment {
     boolean active = true;
     Handler handler;
 
-
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
+
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_second, container, false);
     }
@@ -61,8 +62,8 @@ public class SecondFragment extends Fragment {
                 Log.e("runnable", "could not update ble device because of null pointer");
             }
             if (active) {
-                //100ms is sufficent for a bot like this, it takes time to physically respond anyway.
-                handler.postDelayed(this, 100);
+                //150ms is sufficent for a bot like this, it takes time to physically respond anyway.
+                handler.postDelayed(this, 150);
             }
         }
     };
@@ -74,6 +75,13 @@ public class SecondFragment extends Fragment {
         handler = new Handler();
         handler.post(updater);
         statusText = (TextView) view.findViewById(R.id.status);
+
+        view.findViewById(R.id.allStop).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+            stopAll(view);
+            }
+        });
 
         //using a joystick library created by controlwear (https://github.com/controlwear/virtual-joystick-android)
         JoystickView joystick = (JoystickView) view.findViewById(R.id.joystickView);
@@ -108,6 +116,17 @@ public class SecondFragment extends Fragment {
 
     }
 
+    public void stopAll(View view) {
+        // Do something in response to button click
+        MainActivity.bluetooth.clearQueue();
+        leftMotorSpeed = 0;
+        rightMotorSpeed = 0;
+        weaponSpeed = 0;
+        update();
+
+    }
+
+
     //provide value and range, get the value within that range.
     public static int constrain(int x, int min, int max) {
         if (x > max) {
@@ -130,7 +149,8 @@ public class SecondFragment extends Fragment {
                         "Left Motor: " + leftMotorSpeed + "\n" +
                         "Right Motor: " + rightMotorSpeed + "\n" +
                         "Weapon Speed: " + weaponSpeed + "\n" +
-                        "Battery Voltage: " + batteryVoltage
+                        "Battery Voltage: " + batteryVoltage + "\n" +
+                        "Queue Length: " + MainActivity.bluetooth.getQueueLength() + "\n"
         );
 
         //only send bluetooth updates if the values actually changed (helps to keep the queue down)
@@ -138,14 +158,14 @@ public class SecondFragment extends Fragment {
             MainActivity.bluetooth.write(rightMotorSpeed + "", BluetoothInterface.RIGHT_MOTOR_UUID);
             lastRightMotorSpeed = rightMotorSpeed;
         }
-        if(leftMotorSpeed != lastLeftMotorSpeed){
+        if (leftMotorSpeed != lastLeftMotorSpeed) {
             MainActivity.bluetooth.write(leftMotorSpeed + "", BluetoothInterface.LEFT_MOTOR_UUID);
             lastLeftMotorSpeed = leftMotorSpeed;
         }
-        if(weaponSpeed != lastWeaponMotorSpeed){
+        if (weaponSpeed != lastWeaponMotorSpeed) {
             MainActivity.bluetooth.write(weaponSpeed + "", BluetoothInterface.WEAPON_SPEED_UUID);
             lastWeaponMotorSpeed = weaponSpeed;
 
         }
-     }
+    }
 }
