@@ -26,6 +26,7 @@ public class SecondFragment extends Fragment {
     //status text that's displayed in the center. If you wanted to add more status items then you can put them below
     //currently reports only the below variables (with batteryVoltage coming directly from the bot)
     TextView statusText;
+    SeekBar weaponControl;
 
     public static int leftMotorSpeed = 0;
     public static int rightMotorSpeed = 0;
@@ -53,7 +54,7 @@ public class SecondFragment extends Fragment {
                 //check to make sure that we've completed service discovery, otherwise no data can be sent and we'd only be
                 //backing up the queue with useless information
                 if (MainActivity.bluetooth.isServiceDiscovered()) {
-                    update();
+                    update(false);
                 } else {
                     //have status text reflect that we're still in the process of connecting
                     statusText.setText("Connecting...");
@@ -79,7 +80,7 @@ public class SecondFragment extends Fragment {
         view.findViewById(R.id.allStop).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-            stopAll(view);
+                stopAll(view);
             }
         });
 
@@ -95,7 +96,7 @@ public class SecondFragment extends Fragment {
         });
 
         //using a seek bar in order to control the weapon speed.
-        SeekBar weaponControl = (SeekBar) view.findViewById(R.id.seekBar4);
+        weaponControl = (SeekBar) view.findViewById(R.id.seekBar4);
         weaponControl.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -122,7 +123,8 @@ public class SecondFragment extends Fragment {
         leftMotorSpeed = 0;
         rightMotorSpeed = 0;
         weaponSpeed = 0;
-        update();
+        weaponControl.setVerticalScrollbarPosition(0);
+        update(true);
 
     }
 
@@ -143,7 +145,7 @@ public class SecondFragment extends Fragment {
     int lastWeaponMotorSpeed = 0;
 
     //updates status text on the android device screen and sends over bluetooth updates to the bot.
-    void update() {
+    void update(boolean override) {
         statusText.setText(
                 "Status\n" +
                         "Left Motor: " + leftMotorSpeed + "\n" +
@@ -154,15 +156,15 @@ public class SecondFragment extends Fragment {
         );
 
         //only send bluetooth updates if the values actually changed (helps to keep the queue down)
-        if (rightMotorSpeed != lastRightMotorSpeed) {
+        if (rightMotorSpeed != lastRightMotorSpeed || override) {
             MainActivity.bluetooth.write(rightMotorSpeed + "", BluetoothInterface.RIGHT_MOTOR_UUID);
             lastRightMotorSpeed = rightMotorSpeed;
         }
-        if (leftMotorSpeed != lastLeftMotorSpeed) {
+        if (leftMotorSpeed != lastLeftMotorSpeed || override) {
             MainActivity.bluetooth.write(leftMotorSpeed + "", BluetoothInterface.LEFT_MOTOR_UUID);
             lastLeftMotorSpeed = leftMotorSpeed;
         }
-        if (weaponSpeed != lastWeaponMotorSpeed) {
+        if (weaponSpeed != lastWeaponMotorSpeed || override) {
             MainActivity.bluetooth.write(weaponSpeed + "", BluetoothInterface.WEAPON_SPEED_UUID);
             lastWeaponMotorSpeed = weaponSpeed;
 
