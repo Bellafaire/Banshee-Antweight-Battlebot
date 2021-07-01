@@ -85,18 +85,35 @@ public class SecondFragment extends Fragment {
         });
 
         //using a joystick library created by controlwear (https://github.com/controlwear/virtual-joystick-android)
-        JoystickView joystick = (JoystickView) view.findViewById(R.id.joystickView);
-        joystick.setOnMoveListener(new JoystickView.OnMoveListener() {
+//        JoystickView joystick = (JoystickView) view.findViewById(R.id.joystickView);
+//        joystick.setOnMoveListener(new JoystickView.OnMoveListener() {
+//            @Override
+//            public void onMove(int angle, int strength) {
+//                //take the joystick position and translate it into speeds for the two motors, with the below equations forward will put both fully on and right/left will turn the motors in opposite directions.
+//                rightMotorSpeed = constrain((int) (255 * (strength / 100.0) * Math.sin(angle * Math.PI / 180.0)) - (int) (255 * (strength / 100.0) * Math.cos(angle * Math.PI / 180.0)), -255, 255);
+//                leftMotorSpeed = constrain((int) (255 * (strength / 100.0) * Math.sin(angle * Math.PI / 180.0)) + (int) (255 * (strength / 100.0) * Math.cos(angle * Math.PI / 180.0)), -255, 255);
+//            }
+//        });
+
+        JoystickView leftJoystick = (JoystickView) view.findViewById(R.id.leftJoystick);
+        leftJoystick.setOnMoveListener(new JoystickView.OnMoveListener() {
             @Override
             public void onMove(int angle, int strength) {
-                //take the joystick position and translate it into speeds for the two motors, with the below equations forward will put both fully on and right/left will turn the motors in opposite directions.
-                rightMotorSpeed = constrain((int) (255 * (strength / 100.0) * Math.sin(angle * Math.PI / 180.0)) - (int) (255 * (strength / 100.0) * Math.cos(angle * Math.PI / 180.0)), -255, 255);
-                leftMotorSpeed = constrain((int) (255 * (strength / 100.0) * Math.sin(angle * Math.PI / 180.0)) + (int) (255 * (strength / 100.0) * Math.cos(angle * Math.PI / 180.0)), -255, 255);
+                leftMotorSpeed = (int) (255 * (strength / 100.0) * Math.sin(angle * Math.PI / 180.0));
             }
         });
 
+        JoystickView rightJoystick = (JoystickView) view.findViewById(R.id.rightJoystick);
+        rightJoystick.setOnMoveListener(new JoystickView.OnMoveListener() {
+            @Override
+            public void onMove(int angle, int strength) {
+                rightMotorSpeed = (int) (255 * (strength / 100.0) * Math.sin(angle * Math.PI / 180.0));
+            }
+        });
+
+
         //using a seek bar in order to control the weapon speed.
-        weaponControl = (SeekBar) view.findViewById(R.id.seekBar4);
+        weaponControl = (SeekBar) view.findViewById(R.id.seekBar);
         weaponControl.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {

@@ -7,64 +7,68 @@
     android:orientation="horizontal"
     tools:context=".SecondFragment">
 
-    <SeekBar
-        android:id="@+id/seekBar4"
-        android:layout_width="170dp"
-        android:layout_height="581dp"
-        android:layout_marginStart="48dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginBottom="32dp"
-        android:max="100"
-        android:progress="0"
-        android:rotation="-90"
-        android:scaleX="2"
-        android:scaleY="2"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
 
     <io.github.controlwear.virtual.joystick.android.JoystickView
-        android:id="@+id/joystickView"
-        android:layout_width="436dp"
-        android:layout_height="361dp"
-        android:layout_marginEnd="4dp"
+        android:id="@+id/rightJoystick"
+        android:layout_width="0dp"
+        android:layout_height="250dp"
         app:JV_borderColor="#d6d6d6"
         app:JV_borderWidth="4dp"
         app:JV_buttonColor="#03dac4"
         app:JV_buttonSizeRatio="15%"
         app:JV_fixedCenter="false"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <io.github.controlwear.virtual.joystick.android.JoystickView
+        android:id="@+id/leftJoystick"
+        android:layout_width="0dp"
+        android:layout_height="250dp"
+        app:JV_borderColor="#d6d6d6"
+        app:JV_borderWidth="4dp"
+        app:JV_buttonColor="#03dac4"
+        app:JV_buttonSizeRatio="15%"
+        app:JV_fixedCenter="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Weapon Speed"
-        app:layout_constraintBottom_toTopOf="@+id/seekBar4"
-        app:layout_constraintEnd_toEndOf="@+id/seekBar4"
-        app:layout_constraintStart_toStartOf="@+id/seekBar4"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toTopOf="@+id/leftJoystick"
+        app:layout_constraintEnd_toEndOf="@+id/leftJoystick"
+        app:layout_constraintStart_toStartOf="@+id/leftJoystick" />
 
     <TextView
         android:id="@+id/status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="Status"
-        app:layout_constraintEnd_toStartOf="@+id/joystickView"
-        app:layout_constraintStart_toEndOf="@+id/seekBar4"
-        tools:layout_editor_absoluteY="149dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/allStop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_width="138dp"
+        android:layout_height="72dp"
+        android:layout_marginBottom="16dp"
         android:onClick="stopAll"
         android:text="Stop all and clear queue "
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/status" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/rightJoystick"
+        app:layout_constraintHorizontal_bias="0.483"
+        app:layout_constraintStart_toEndOf="@+id/leftJoystick" />
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="229dp"
+        android:layout_height="24dp"
+        app:layout_constraintBottom_toTopOf="@+id/textView"
+        app:layout_constraintEnd_toEndOf="@+id/leftJoystick"
+        app:layout_constraintStart_toStartOf="@+id/leftJoystick" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
