@@ -28,6 +28,11 @@ public class SecondFragment extends Fragment {
     TextView statusText;
     SeekBar weaponControl;
 
+    //change change in joystick required for the app to update a bluetooth command.
+    //this allows for higher update rates without placing too heavy a burden on the bluetooth
+    //link
+    public static final int BLUETOOTH_SEND_THRESHOLD = 5;
+
     public static int leftMotorSpeed = 0;
     public static int rightMotorSpeed = 0;
     public static int weaponSpeed = 0;
@@ -63,8 +68,8 @@ public class SecondFragment extends Fragment {
                 Log.e("runnable", "could not update ble device because of null pointer");
             }
             if (active) {
-                //150ms is sufficent for a bot like this, it takes time to physically respond anyway.
-                handler.postDelayed(this, 150);
+                //50ms is sufficent for a bot like this, it takes time to physically respond anyway.
+                handler.postDelayed(this, 50);
             }
         }
     };
@@ -85,21 +90,11 @@ public class SecondFragment extends Fragment {
         });
 
         //using a joystick library created by controlwear (https://github.com/controlwear/virtual-joystick-android)
-//        JoystickView joystick = (JoystickView) view.findViewById(R.id.joystickView);
-//        joystick.setOnMoveListener(new JoystickView.OnMoveListener() {
-//            @Override
-//            public void onMove(int angle, int strength) {
-//                //take the joystick position and translate it into speeds for the two motors, with the below equations forward will put both fully on and right/left will turn the motors in opposite directions.
-//                rightMotorSpeed = constrain((int) (255 * (strength / 100.0) * Math.sin(angle * Math.PI / 180.0)) - (int) (255 * (strength / 100.0) * Math.cos(angle * Math.PI / 180.0)), -255, 255);
-//                leftMotorSpeed = constrain((int) (255 * (strength / 100.0) * Math.sin(angle * Math.PI / 180.0)) + (int) (255 * (strength / 100.0) * Math.cos(angle * Math.PI / 180.0)), -255, 255);
-//            }
-//        });
-
         JoystickView leftJoystick = (JoystickView) view.findViewById(R.id.leftJoystick);
         leftJoystick.setOnMoveListener(new JoystickView.OnMoveListener() {
             @Override
             public void onMove(int angle, int strength) {
-                leftMotorSpeed = (int) (255 * (strength / 100.0) * Math.sin(angle * Math.PI / 180.0));
+                leftMotorSpeed = constrain((int) (300 * (strength / 100.0) * Math.sin(angle * Math.PI / 180.0)), -255, 255);
             }
         });
 
@@ -107,7 +102,7 @@ public class SecondFragment extends Fragment {
         rightJoystick.setOnMoveListener(new JoystickView.OnMoveListener() {
             @Override
             public void onMove(int angle, int strength) {
-                rightMotorSpeed = (int) (255 * (strength / 100.0) * Math.sin(angle * Math.PI / 180.0));
+                rightMotorSpeed = constrain((int) (300 * (strength / 100.0) * Math.sin(angle * Math.PI / 180.0)), -255, 255);
             }
         });
 
@@ -173,15 +168,15 @@ public class SecondFragment extends Fragment {
         );
 
         //only send bluetooth updates if the values actually changed (helps to keep the queue down)
-        if (rightMotorSpeed != lastRightMotorSpeed || override) {
+        if ((Math.abs(rightMotorSpeed - lastRightMotorSpeed) > BLUETOOTH_SEND_THRESHOLD) || override) {
             MainActivity.bluetooth.write(rightMotorSpeed + "", BluetoothInterface.RIGHT_MOTOR_UUID);
             lastRightMotorSpeed = rightMotorSpeed;
         }
-        if (leftMotorSpeed != lastLeftMotorSpeed || override) {
+        if ((Math.abs(leftMotorSpeed - lastLeftMotorSpeed) > BLUETOOTH_SEND_THRESHOLD) || override) {
             MainActivity.bluetooth.write(leftMotorSpeed + "", BluetoothInterface.LEFT_MOTOR_UUID);
             lastLeftMotorSpeed = leftMotorSpeed;
         }
-        if (weaponSpeed != lastWeaponMotorSpeed || override) {
+        if ((Math.abs(weaponSpeed - lastWeaponMotorSpeed) > BLUETOOTH_SEND_THRESHOLD) || override) {
             MainActivity.bluetooth.write(weaponSpeed + "", BluetoothInterface.WEAPON_SPEED_UUID);
             lastWeaponMotorSpeed = weaponSpeed;
 
