@@ -5,12 +5,12 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Banshee - Antweight Battlebot Schematic"
-Date "2021-03-11"
+Date "2021-06-27"
 Rev "1"
 Comp ""
-Comment1 ""
-Comment2 ""
-Comment3 ""
+Comment1 "Matthew James Bellafaire "
+Comment2 "https://github.com/bellafaire"
+Comment3 "https://hackaday.io/bellafaire"
 Comment4 ""
 $EndDescr
 $Comp
